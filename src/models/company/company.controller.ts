@@ -1,19 +1,40 @@
-import { Controller, Post, Body, Param, Get } from '@nestjs/common';
-import CreateCompanyDto from './dtos/create-company.dto';
+import {
+  Body,
+  Controller,
+  Post,
+  Put,
+  Get,
+  Param,
+  Delete,
+} from '@nestjs/common';
+
 import CompanyService from './company.service';
+import { CreateCompanyDto } from './dtos/create-company.dto';
 
 @Controller('company')
 export class CompanyController {
-  constructor(public companyService: CompanyService) {}
+  constructor(private companyService: CompanyService) {}
 
   @Post()
   createCompany(@Body() createCompanyDto: CreateCompanyDto) {
-    console.log(createCompanyDto);
-    return createCompanyDto;
+    return this.companyService.create(createCompanyDto);
   }
 
   @Get('/:id')
-  getCompanyById(@Param('id') id: string) {
-    return `company with id ${id}`;
+  findOne(@Param('id') id: CompanyId) {
+    return this.companyService.findOne(id);
+  }
+
+  @Put('/:id')
+  updateCompany(
+    @Param('id') id: CompanyId,
+    @Body() updateCompanyDto: UpdateCompanyDto,
+  ) {
+    return this.companyService.update(id, updateCompanyDto);
+  }
+
+  @Delete('/:id')
+  removeCompany(@Param('id') id: CompanyId) {
+    return this.companyService.remove(id);
   }
 }

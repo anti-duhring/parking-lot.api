@@ -16,6 +16,23 @@
     "noImplicitAny": false,
     "strictBindCallApply": false,
     "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": false,
+    // "paths": {
+    //   "@company/*": [
+    //     "src/models/company/*"
+    //   ],
+    //   "@parking-lot/*": [
+    //     "src/models/parking-lot/*"
+    //   ],
+    //   "@parking-event/*": [
+    //     "src/models/parking-event/*"
+    //   ],
+    //   "@vehicle/*": [
+    //     "src/models/vehicle/*"
+    //   ],
+    //   "@auth/*": [
+    //     "src/auth/*"
+    //   ]
+    // }
   }
 }

@@ -1,28 +1,15 @@
 import { Type } from 'class-transformer';
 import {
-  IsDefined,
-  IsInt,
   IsNotEmpty,
   IsNotEmptyObject,
   IsString,
   Length,
-  Min,
+  MinLength,
   ValidateNested,
 } from 'class-validator';
+import { ParkingSpotsDto } from '../../parking-lot/dtos/parking-spots.dto';
 
-export class ParkingSpots {
-  @IsInt()
-  @Min(0)
-  @IsDefined()
-  car: number;
-
-  @IsInt()
-  @Min(0)
-  @IsDefined()
-  motocycle: number;
-}
-
-export default class CreateCompanyDto {
+export class CreateCompanyDto {
   @IsString()
   @IsNotEmpty()
   name: string;
@@ -34,6 +21,11 @@ export default class CreateCompanyDto {
 
   @IsString()
   @IsNotEmpty()
+  @MinLength(6, { message: 'Password is too short' })
+  password: string;
+
+  @IsString()
+  @IsNotEmpty()
   address: string;
 
   @IsString()
@@ -42,6 +34,6 @@ export default class CreateCompanyDto {
 
   @IsNotEmptyObject()
   @ValidateNested()
-  @Type(() => ParkingSpots)
-  parkingSpots: ParkingSpots;
+  @Type(() => ParkingSpotsDto)
+  parkingSpots: ParkingSpotsDto;
 }

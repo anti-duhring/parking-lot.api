@@ -1,15 +1,19 @@
-import ParkingSpot from '@parking-spot/entity/parking-spot.entity';
-import Vehicle from 'src/models/vehicle/entity/vehicle.entity';
-import { Column, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+// import ParkingLot from '@parking-lot/entity/parking-lot.entity';
+// import Vehicle from '@vehicle/entity/vehicle.entity';
 
-export default class ParkingEvent {
+import { Vehicle } from '../../vehicle/entity/vehicle.entity';
+import { ParkingLot } from '../../parking-lot/entity/parking-lot.entity';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+
+@Entity({ name: 'parking_events' })
+export class ParkingEvent {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id: ParkingEventId;
 
-  @ManyToOne(() => ParkingSpot, (spot) => spot.parkingEvent)
-  parkingSpot: ParkingSpot;
+  @ManyToOne(() => ParkingLot, (parkingLot) => parkingLot.parkingEvents)
+  parkingLot: ParkingLot;
 
-  @ManyToOne(() => Vehicle, (vehicle) => vehicle.parkingEvent)
+  @ManyToOne(() => Vehicle, (vehicle) => vehicle.parkingEvents)
   vehicle: Vehicle;
 
   @Column()

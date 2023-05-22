@@ -1,18 +1,24 @@
-import ParkingSpot from '@parking-spot/entity/parking-spot.entity';
+// import ParkingLot from '@parking-lot/entity/parking-lot.entity';
+// import Vehicle from '@vehicle/entity/vehicle.entity';
 import {
-  Entity,
   Column,
-  PrimaryGeneratedColumn,
-  OneToOne,
   CreateDateColumn,
-  UpdateDateColumn,
   DeleteDateColumn,
+  Entity,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+  JoinColumn,
 } from 'typeorm';
 
+import { ParkingLot } from '../../parking-lot/entity/parking-lot.entity';
+import { Vehicle } from '../../vehicle/entity/vehicle.entity';
+
 @Entity()
-export default class Company {
+export class Company {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id: CompanyId;
 
   @Column()
   name: string;
@@ -21,13 +27,20 @@ export default class Company {
   cnpj: string;
 
   @Column()
+  password: string;
+
+  @Column()
   address: string;
 
   @Column()
   phone: string;
 
-  @OneToOne(() => ParkingSpot, (parkingSpot) => parkingSpot.company)
-  parkingSpot: ParkingSpot;
+  @OneToOne(() => ParkingLot, (parkingLot) => parkingLot.company)
+  @JoinColumn()
+  parkingLot: ParkingLot;
+
+  @OneToMany(() => Vehicle, (vehicle) => vehicle.company)
+  vehicles: Vehicle[];
 
   @CreateDateColumn()
   createdAt: Date;

@@ -1,5 +1,4 @@
 // import Company from '@company/entity/company.entity';
-// import ParkingEvent from '@parking-event/entity/parking-event.entity';
 
 import { Company } from '../../company/entity/company.entity';
 import { ParkingEvent } from '../../parking-event/entity/parking-event.entity';
@@ -7,41 +6,34 @@ import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
-  ManyToOne,
+  OneToOne,
+  JoinColumn,
+  OneToMany,
   CreateDateColumn,
   UpdateDateColumn,
-  JoinColumn,
   DeleteDateColumn,
-  OneToMany,
 } from 'typeorm';
 
-@Entity()
-export class Vehicle {
+@Entity({ name: 'parking_lot' })
+export class ParkingLot {
   @PrimaryGeneratedColumn('uuid')
-  id: VehicleId;
+  id: string;
 
-  @ManyToOne(() => Company, (company) => company.vehicles)
+  @OneToOne(() => Company, (company) => company.parkingLot)
   @JoinColumn()
   company: Company;
 
-  @OneToMany(() => ParkingEvent, (parkingEvent) => parkingEvent.vehicle)
-  @JoinColumn()
+  @Column()
+  totalCarSpots: number;
+
+  @Column()
+  totalMotorcycleSpots: number;
+
+  @Column()
+  totalSpots: number;
+
+  @OneToMany(() => ParkingEvent, (parkingEvent) => parkingEvent.parkingLot)
   parkingEvents: ParkingEvent[];
-
-  @Column()
-  model: string;
-
-  @Column()
-  brand: string;
-
-  @Column()
-  color: string;
-
-  @Column()
-  plate: string;
-
-  @Column()
-  type: string;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -51,4 +43,6 @@ export class Vehicle {
 
   @DeleteDateColumn()
   deletedAt: Date;
+
+  occupiedSpots: ParkingEvent[];
 }
