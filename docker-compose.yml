@@ -1,0 +1,28 @@
+version: '1'
+services:
+  mysql:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: parking
+      MYSQL_PASSWORD: parking
+      MYSQL_DATABASE: parking_dev
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - 3306:3306
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - mysql
+    ports:
+      - 3000:3000
+    volumes:
+      - ./src:/app/src
+      - ./package.json:/app/package.json
+      - ./.env:/app/.env  # Add this line to mount the .env file into the container
+volumes:
+  mysql_data:
