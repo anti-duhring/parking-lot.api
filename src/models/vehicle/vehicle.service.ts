@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Vehicle } from './entity/vehicle.entity';
@@ -11,6 +11,8 @@ import {
 
 @Injectable()
 export class VehicleService {
+  user: CompanyUser;
+
   constructor(
     @InjectRepository(Vehicle) private repo: Repository<Vehicle>,
     private companyService: CompanyService,
@@ -20,6 +22,7 @@ export class VehicleService {
     const { companyId, brand, color, model, plate, type } = createVehicleDto;
 
     await this.validateIfVehicleWithSamePlateAlreadyExists(plate);
+    this.validIfCompanyIsTheUserCompany(companyId);
 
     const company = await this.companyService.findOne(companyId);
     const vehicle = this.repo.create({
@@ -46,6 +49,8 @@ export class VehicleService {
       if (!vehicle) {
         throw new VehicleNotFoundException(id);
       }
+
+      await this.validateIfVehicleBelongsToCompany(vehicle.id);
 
       return vehicle;
     } catch (err) {
@@ -76,6 +81,8 @@ export class VehicleService {
   }
 
   async remove(id: VehicleId) {
+    await this.validateIfVehicleBelongsToCompany(id);
+
     const vehicle = await this.findOne(id);
 
     return await this.repo.softRemove(vehicle);
@@ -86,6 +93,20 @@ export class VehicleService {
 
     if (vehicle) {
       throw new VehicleAlreadyExistsException(plate);
+    }
+  }
+
+  private async validateIfVehicleBelongsToCompany(vehicleId: VehicleId) {
+    const vehicle = await this.findOne(vehicleId);
+
+    if (vehicle.company.id != this.user.sub) {
+      throw new ForbiddenException();
+    }
+  }
+
+  private validIfCompanyIsTheUserCompany(companyId: CompanyId) {
+    if (companyId != this.user.sub) {
+      throw new ForbiddenException();
     }
   }
 }

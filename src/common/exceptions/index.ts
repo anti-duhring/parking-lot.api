@@ -9,3 +9,5 @@ export * from './VehicleExitAlreadyBeenRegistered.exception';
 
 export * from './ParkingEventNotFound.exception';
 export * from './ParkingEventWithConflict.exception';
+
+export * from './InvalidCredentials.exception';

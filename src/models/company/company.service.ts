@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject, ExecutionContext } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
@@ -12,6 +12,7 @@ import { ParkingLotService } from '../parking-lot/parking-lot.service';
 
 @Injectable()
 export default class CompanyService {
+  public user: CompanyUser;
   constructor(
     @InjectRepository(Company) private repo: Repository<Company>,
     private readonly parkingLotService: ParkingLotService,
@@ -21,13 +22,9 @@ export default class CompanyService {
     const { name, cnpj, password, address, phone, parkingSpots } = data;
     const { car, motocycle } = parkingSpots;
 
-    const companyWithSameCnpj = await this.repo.findOneBy({ cnpj });
+    await this.validateIfACompanyWithGivenCnpjExists(cnpj);
 
-    if (companyWithSameCnpj) {
-      throw new CompanyAlreadyExistsException(cnpj);
-    }
-
-    let company = this.repo.create({
+    const company = this.repo.create({
       name,
       cnpj,
       password,
@@ -35,18 +32,15 @@ export default class CompanyService {
       phone,
     });
 
-    company = await this.repo.save(company);
-
-    const parkingLot = await this.parkingLotService.create({
+    company.parkingLot = await this.parkingLotService.create({
       company,
       car,
       motocycle,
     });
-    delete parkingLot.company;
 
-    Object.assign(company, { parkingLot });
+    delete company.parkingLot.company.password;
 
-    return this.repo.save(company);
+    return await this.repo.save(company);
   }
 
   async findOne(id: CompanyId) {
@@ -61,11 +55,32 @@ export default class CompanyService {
         throw new CompanyNotFoundException(id);
       }
 
+      delete company.password;
+
       return company;
     } catch (err) {
       throw new CompanyNotFoundException(id);
     }
   }
+
+  async findOneByCnpj(cnpj: string) {
+    try {
+      const company = await this.repo
+        .createQueryBuilder('company')
+        .leftJoinAndSelect('company.parkingLot', 'parkingLot')
+        .where('company.cnpj = :cnpj', { cnpj })
+        .getOne();
+
+      if (!company) {
+        throw new CompanyNotFoundException(cnpj);
+      }
+
+      return company;
+    } catch (err) {
+      throw new CompanyNotFoundException(cnpj);
+    }
+  }
+
   async update(id: CompanyId, data: UpdateCompanyDto) {
     if (data.hasOwnProperty('cnpj')) {
       const { cnpj } = data;
@@ -87,5 +102,13 @@ export default class CompanyService {
     const company = await this.findOne(id);
     await this.parkingLotService.remove(company.parkingLot.id);
     return await this.repo.softRemove(company);
+  }
+
+  async validateIfACompanyWithGivenCnpjExists(cnpj: string) {
+    const company = await this.repo.findOneBy({ cnpj });
+
+    if (company) {
+      throw new CompanyAlreadyExistsException(cnpj);
+    }
   }
 }

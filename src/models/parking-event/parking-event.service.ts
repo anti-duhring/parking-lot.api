@@ -14,6 +14,8 @@ import {
 
 @Injectable()
 export class ParkingEventService {
+  user: CompanyUser;
+
   constructor(
     @InjectRepository(ParkingEvent)
     private readonly repo: Repository<ParkingEvent>,

@@ -8,6 +8,8 @@ import CompanyService from '../company/company.service';
 
 @Injectable()
 export class ParkingLotService {
+  user: CompanyUser;
+
   constructor(
     @InjectRepository(ParkingLot)
     private readonly repo: Repository<ParkingLot>,
@@ -22,7 +24,7 @@ export class ParkingLotService {
       totalSpots: car + motocycle,
     });
 
-    return this.repo.save(parkingLot);
+    return await this.repo.save(parkingLot);
   }
 
   async findOne(id: ParkingLotId) {
@@ -37,6 +39,7 @@ export class ParkingLotService {
       if (!parkingLot) {
         throw new ParkingLotNotFoundException(id);
       }
+
       return parkingLot;
     } catch (err) {
       throw new ParkingLotNotFoundException(id);
