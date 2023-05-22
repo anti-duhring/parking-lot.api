@@ -18,10 +18,14 @@ export class ParkingLotController {
   @UseGuards(AuthGuard)
   @Get('/:id')
   findOne(@Param('id') id: ParkingLotId, @Req() req: any) {
-    const { user } = req;
-    this.parkingLotService.user = user;
+    try {
+      const { user } = req;
+      this.parkingLotService.user = user;
 
-    return this.parkingLotService.findOne(id);
+      return this.parkingLotService.findOne(id);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   @UseGuards(AuthGuard)
@@ -31,18 +35,26 @@ export class ParkingLotController {
     @Body() updateParkingLotDto: UpdateParkingLotDto,
     @Req() req: any,
   ) {
-    const { user } = req;
-    this.parkingLotService.user = user;
+    try {
+      const { user } = req;
+      this.parkingLotService.user = user;
 
-    return this.parkingLotService.update(id, updateParkingLotDto);
+      return this.parkingLotService.update(id, updateParkingLotDto);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   @UseGuards(AuthGuard)
   @Delete('/:id')
   remove(@Param('id') id: ParkingLotId, @Req() req: any) {
-    const { user } = req;
-    this.parkingLotService.user = user;
+    try {
+      const { user } = req;
+      this.parkingLotService.user = user;
 
-    return this.parkingLotService.remove(id);
+      return this.parkingLotService.remove(id);
+    } catch (error) {
+      console.error(error);
+    }
   }
 }

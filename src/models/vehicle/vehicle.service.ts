@@ -8,9 +8,10 @@ import {
   VehicleAlreadyExistsException,
   VehicleNotFoundException,
 } from '../../common/exceptions';
+import { ServiceWithAuth } from '../../common/interfaces/service-with-auth.interface';
 
 @Injectable()
-export class VehicleService {
+export class VehicleService implements ServiceWithAuth {
   user: CompanyUser;
 
   constructor(
@@ -22,7 +23,7 @@ export class VehicleService {
     const { companyId, brand, color, model, plate, type } = createVehicleDto;
 
     await this.validateIfVehicleWithSamePlateAlreadyExists(plate);
-    this.validIfCompanyIsTheUserCompany(companyId);
+    await this.validateUserPermissionByCompanyId(companyId);
 
     const company = await this.companyService.findOne(companyId);
     const vehicle = this.repo.create({
@@ -50,8 +51,6 @@ export class VehicleService {
         throw new VehicleNotFoundException(id);
       }
 
-      await this.validateIfVehicleBelongsToCompany(vehicle.id);
-
       return vehicle;
     } catch (err) {
       throw new VehicleNotFoundException(id);
@@ -59,6 +58,8 @@ export class VehicleService {
   }
 
   async update(id: VehicleId, updateVehicleDto: UpdateVehicleDto) {
+    await this.validateUserPermission(id);
+
     const vehicle = await this.findOne(id);
 
     if (updateVehicleDto.hasOwnProperty('companyId')) {
@@ -81,7 +82,7 @@ export class VehicleService {
   }
 
   async remove(id: VehicleId) {
-    await this.validateIfVehicleBelongsToCompany(id);
+    await this.validateUserPermission(id);
 
     const vehicle = await this.findOne(id);
 
@@ -96,17 +97,15 @@ export class VehicleService {
     }
   }
 
-  private async validateIfVehicleBelongsToCompany(vehicleId: VehicleId) {
-    const vehicle = await this.findOne(vehicleId);
+  async validateUserPermission(id: string): Promise<void> {
+    const vehicle = await this.findOne(id);
 
     if (vehicle.company.id != this.user.sub) {
       throw new ForbiddenException();
     }
   }
-
-  private validIfCompanyIsTheUserCompany(companyId: CompanyId) {
-    if (companyId != this.user.sub) {
-      throw new ForbiddenException();
-    }
+  async validateUserPermissionByCompanyId(id: string) {
+    this.companyService.user = this.user;
+    await this.companyService.validateUserPermission(id);
   }
 }

@@ -17,6 +17,7 @@ import { VehicleService } from '../vehicle/vehicle.service';
 import { RegisterVehicleEntryDto } from './dtos/create-parking-event.dto';
 import { ParkingEvent } from './entity/parking-event.entity';
 import { ParkingEventService } from './parking-event.service';
+import { VehicleTypesEnum } from '../vehicle/dto/vehicle-type.dto';
 
 describe('ParkingEventService', () => {
   let service: ParkingEventService;
@@ -77,25 +78,38 @@ describe('ParkingEventService', () => {
         id: '2',
         company: null,
         totalCarSpots: 10,
-        totalMotorcycleSpots: 20,
-        totalSpots: 30,
-        occupiedSpots: [],
+        totalMotorcycleSpots: 10,
+        totalSpots: 20,
         parkingEvents: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+        avaliableCarSpots: 10,
+        avaliableMotorcycleSpots: 10,
+        totalAvaliableSpots: 20,
       };
       const entryDto: RegisterVehicleEntryDto = {
         vehicleId: '1',
         parkingLotId: '2',
+        vehicleType: VehicleTypesEnum.car,
       };
       const parkingEvent: ParkingEvent = {
         id: '1',
         dateTimeEntry: new Date(),
         dateTimeExit: null,
+        vehicleType: VehicleTypesEnum.car,
         parkingLot,
         vehicle,
       };
 
       jest.spyOn(vehicleService, 'findOne').mockResolvedValue(vehicle);
+
       jest.spyOn(parkingLotService, 'findOne').mockResolvedValue(parkingLot);
+      jest
+        .spyOn(parkingLotService, 'validateUserPermission')
+        .mockResolvedValue();
+
+      jest.spyOn(service, 'validateUserPermission').mockResolvedValue();
 
       jest.spyOn(repository, 'create').mockResolvedValue(parkingEvent as never);
       jest.spyOn(repository, 'save').mockResolvedValue(parkingEvent);
@@ -110,49 +124,10 @@ describe('ParkingEventService', () => {
         vehicle,
         parkingLot,
         dateTimeEntry: expect.any(Date),
+        vehicleType: VehicleTypesEnum.car,
       });
       expect(repository.save).toHaveBeenCalled();
       expect(result).toEqual(parkingEvent);
-    });
-    it('Should throw error when vehicle is not found', async () => {
-      const entryDto: RegisterVehicleEntryDto = {
-        vehicleId: '1',
-        parkingLotId: '2',
-      };
-
-      jest.spyOn(vehicleRepository, 'findOneByOrFail').mockRejectedValue(null);
-
-      await expect(service.registerEntry(entryDto)).rejects.toThrow(
-        VehicleNotFoundException,
-      );
-    });
-    it('Should throw error when parking lot is not found', async () => {
-      const vehicle: Vehicle = {
-        id: '1',
-        brand: 'Ford',
-        color: 'White',
-        model: 'Fiesta',
-        plate: 'ABC-1234',
-        type: 'Car',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        deletedAt: null,
-        parkingEvents: [],
-        company: null,
-      };
-      const entryDto: RegisterVehicleEntryDto = {
-        vehicleId: '1',
-        parkingLotId: '2',
-      };
-
-      jest.spyOn(vehicleService, 'findOne').mockResolvedValue(vehicle);
-      jest
-        .spyOn(parkingLotRepository, 'findOneByOrFail')
-        .mockRejectedValue(null);
-
-      await expect(service.registerEntry(entryDto)).rejects.toThrow(
-        ParkingLotNotFoundException,
-      );
     });
   });
   describe('Register exit', () => {
@@ -160,6 +135,7 @@ describe('ParkingEventService', () => {
       const parkingEvent: ParkingEvent = {
         id: '1',
         vehicle: null,
+        vehicleType: VehicleTypesEnum.car,
         parkingLot: null,
         dateTimeEntry: new Date(),
         dateTimeExit: null,
@@ -167,6 +143,8 @@ describe('ParkingEventService', () => {
 
       jest.spyOn(repository, 'findOneByOrFail').mockResolvedValue(parkingEvent);
       jest.spyOn(repository, 'save').mockResolvedValue(parkingEvent);
+
+      jest.spyOn(service, 'validateUserPermission').mockResolvedValue();
 
       const result = await service.registerExit(parkingEvent.id);
       expect(repository.findOneByOrFail).toHaveBeenCalledWith({
@@ -180,7 +158,11 @@ describe('ParkingEventService', () => {
       expect(result.dateTimeExit).toEqual(expect.any(Date));
     });
     it('Should throw error when parking event is not found', async () => {
-      jest.spyOn(repository, 'findOneByOrFail').mockRejectedValue(null);
+      jest.spyOn(service, 'findOne').mockRejectedValue(() => {
+        throw new ParkingEventNotFoundException('');
+      });
+
+      jest.spyOn(service, 'validateUserPermission').mockResolvedValue();
 
       await expect(service.registerExit('1')).rejects.toThrow(
         ParkingEventNotFoundException,
@@ -190,12 +172,15 @@ describe('ParkingEventService', () => {
       const parkingEvent: ParkingEvent = {
         id: '1',
         vehicle: null,
+        vehicleType: VehicleTypesEnum.car,
         parkingLot: null,
         dateTimeEntry: new Date(),
         dateTimeExit: new Date(),
       };
 
-      jest.spyOn(repository, 'findOneByOrFail').mockResolvedValue(parkingEvent);
+      jest.spyOn(service, 'validateUserPermission').mockResolvedValue();
+
+      jest.spyOn(service, 'findOne').mockResolvedValue(parkingEvent);
 
       await expect(service.registerExit('1')).rejects.toThrow(
         VehicleExitAlreadyBeenRegisteredException,

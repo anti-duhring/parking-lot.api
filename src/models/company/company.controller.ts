@@ -19,10 +19,14 @@ export class CompanyController {
   @UseGuards(AuthGuard)
   @Get('/:id')
   findOne(@Param('id') id: CompanyId, @Req() req: any) {
-    const { user } = req;
-    this.companyService.user = user;
+    try {
+      const { user } = req;
+      this.companyService.user = user;
 
-    return this.companyService.findOne(id);
+      return this.companyService.findOne(id);
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   @UseGuards(AuthGuard)
@@ -32,18 +36,26 @@ export class CompanyController {
     @Body() updateCompanyDto: UpdateCompanyDto,
     @Req() req: any,
   ) {
-    const { user } = req;
-    this.companyService.user = user;
+    try {
+      const { user } = req;
+      this.companyService.user = user;
 
-    return this.companyService.update(id, updateCompanyDto);
+      return this.companyService.update(id, updateCompanyDto);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   @UseGuards(AuthGuard)
   @Delete('/:id')
   removeCompany(@Param('id') id: CompanyId, @Req() req: any) {
-    const { user } = req;
-    this.companyService.user = user;
+    try {
+      const { user } = req;
+      this.companyService.user = user;
 
-    return this.companyService.remove(id);
+      return this.companyService.remove(id);
+    } catch (error) {
+      console.error(error);
+    }
   }
 }

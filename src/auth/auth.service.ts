@@ -59,7 +59,7 @@ export class AuthService {
     return salt + '.' + hash.toString('hex');
   }
 
-  private async comparePassword({
+  async comparePassword({
     password,
     salt,
     storedHash,
@@ -73,7 +73,7 @@ export class AuthService {
     return storedHash === hash.toString('hex');
   }
 
-  private async generateToken(cnpj: string, id: CompanyId) {
+  async generateToken(cnpj: string, id: CompanyId) {
     return await this.jwtService.signAsync({ username: cnpj, sub: id });
   }
 }

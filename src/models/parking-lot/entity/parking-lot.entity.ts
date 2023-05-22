@@ -44,5 +44,9 @@ export class ParkingLot {
   @DeleteDateColumn()
   deletedAt: Date;
 
-  occupiedSpots: ParkingEvent[];
+  avaliableCarSpots: number;
+
+  avaliableMotorcycleSpots: number;
+
+  totalAvaliableSpots: number;
 }

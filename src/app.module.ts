@@ -30,6 +30,7 @@ dotenv.config();
       database: process.env.DB_NAME,
       entities: [Company, ParkingLot, Vehicle, ParkingEvent],
       synchronize: true,
+      dropSchema: true,
     }),
   ],
   controllers: [],

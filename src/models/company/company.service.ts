@@ -1,18 +1,20 @@
-import { Injectable, Inject, ExecutionContext } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 import {
   CompanyAlreadyExistsException,
   CompanyNotFoundException,
 } from '../../common/exceptions';
-import { Company } from './entity/company.entity';
-import { CreateCompanyDto } from './dtos/create-company.dto';
+import { ServiceWithAuth } from '../../common/interfaces/service-with-auth.interface';
 import { ParkingLotService } from '../parking-lot/parking-lot.service';
+import { CreateCompanyDto } from './dtos/create-company.dto';
+import { Company } from './entity/company.entity';
 
 @Injectable()
-export default class CompanyService {
-  public user: CompanyUser;
+export default class CompanyService implements ServiceWithAuth {
+  user: CompanyUser;
+
   constructor(
     @InjectRepository(Company) private repo: Repository<Company>,
     private readonly parkingLotService: ParkingLotService,
@@ -32,15 +34,17 @@ export default class CompanyService {
       phone,
     });
 
+    await this.repo.save(company);
+
     company.parkingLot = await this.parkingLotService.create({
       company,
       car,
       motocycle,
     });
 
-    delete company.parkingLot.company.password;
+    delete company.parkingLot.company;
 
-    return await this.repo.save(company);
+    return company;
   }
 
   async findOne(id: CompanyId) {
@@ -59,7 +63,7 @@ export default class CompanyService {
 
       return company;
     } catch (err) {
-      throw new CompanyNotFoundException(id);
+      throw err;
     }
   }
 
@@ -77,11 +81,13 @@ export default class CompanyService {
 
       return company;
     } catch (err) {
-      throw new CompanyNotFoundException(cnpj);
+      throw err;
     }
   }
 
   async update(id: CompanyId, data: UpdateCompanyDto) {
+    this.validateUserPermission(id);
+
     if (data.hasOwnProperty('cnpj')) {
       const { cnpj } = data;
 
@@ -99,6 +105,8 @@ export default class CompanyService {
   }
 
   async remove(id: CompanyId) {
+    this.validateUserPermission(id);
+
     const company = await this.findOne(id);
     await this.parkingLotService.remove(company.parkingLot.id);
     return await this.repo.softRemove(company);
@@ -109,6 +117,12 @@ export default class CompanyService {
 
     if (company) {
       throw new CompanyAlreadyExistsException(cnpj);
+    }
+  }
+
+  validateUserPermission(id: string): void | Promise<void> {
+    if (id != this.user.sub) {
+      throw new ForbiddenException();
     }
   }
 }

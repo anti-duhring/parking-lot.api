@@ -21,18 +21,26 @@ export class ParkingEventController {
     @Body() registerVehicleEntryDto: RegisterVehicleEntryDto,
     @Req() req: any,
   ) {
-    const { user } = req;
-    this.parkingEventService.user = user;
+    try {
+      const { user } = req;
+      this.parkingEventService.user = user;
 
-    return this.parkingEventService.registerEntry(registerVehicleEntryDto);
+      return this.parkingEventService.registerEntry(registerVehicleEntryDto);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   @UseGuards(AuthGuard)
   @Put('/exit/:id')
   registerExit(@Param('id') id: ParkingEventId, @Req() req: any) {
-    const { user } = req;
-    this.parkingEventService.user = user;
+    try {
+      const { user } = req;
+      this.parkingEventService.user = user;
 
-    return this.parkingEventService.registerExit(id);
+      return this.parkingEventService.registerExit(id);
+    } catch (error) {
+      console.error(error);
+    }
   }
 }

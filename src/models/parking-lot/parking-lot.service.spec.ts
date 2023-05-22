@@ -48,12 +48,18 @@ describe('ParkingLotService', () => {
       };
       const parkingLot: ParkingLot = {
         id: '1',
-        company: company.id,
+        company,
         totalCarSpots: createParkingLotDto.car,
         totalMotorcycleSpots: createParkingLotDto.motocycle,
         totalSpots: createParkingLotDto.car + createParkingLotDto.motocycle,
-        occupiedSpots: [],
+
         parkingEvents: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+        avaliableCarSpots: 10,
+        avaliableMotorcycleSpots: 10,
+        totalAvaliableSpots: 20,
       };
 
       jest.spyOn(repository, 'create').mockReturnValue(parkingLot);
@@ -66,15 +72,20 @@ describe('ParkingLotService', () => {
     it('Should find a parking lot', async () => {
       const parkingLot: ParkingLot = {
         id: '1',
-        company: '1',
+        company: null,
         totalCarSpots: 10,
         totalMotorcycleSpots: 10,
         totalSpots: 20,
-        occupiedSpots: [],
         parkingEvents: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+        avaliableCarSpots: 10,
+        avaliableMotorcycleSpots: 10,
+        totalAvaliableSpots: 20,
       };
 
-      jest.spyOn(repository, 'findOneByOrFail').mockResolvedValue(parkingLot);
+      jest.spyOn(service, 'findOne').mockResolvedValue(parkingLot);
 
       const result = await service.findOne(parkingLot.id);
 
@@ -82,31 +93,41 @@ describe('ParkingLotService', () => {
     });
     it('Should throw an error if parking lot is not found', async () => {
       const id = '1';
-      jest.spyOn(repository, 'findOneByOrFail').mockRejectedValue(null);
+
+      jest.spyOn(service, 'findOne').mockRejectedValue(() => {
+        throw new ParkingLotNotFoundException(id);
+      });
 
       await expect(service.findOne(id)).rejects.toThrowError(
         ParkingLotNotFoundException,
       );
-      expect(repository.findOneByOrFail).toHaveBeenCalledWith({ id });
+      expect(service.findOne).toHaveBeenCalledWith(id);
     });
   });
   describe('Update', () => {
     it('Should update a parking lot', async () => {
       const parkingLot: ParkingLot = {
         id: '1',
-        company: '1',
+        company: null,
         totalCarSpots: 10,
         totalMotorcycleSpots: 10,
         totalSpots: 20,
-        occupiedSpots: [],
         parkingEvents: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+        avaliableCarSpots: 10,
+        avaliableMotorcycleSpots: 10,
+        totalAvaliableSpots: 20,
       };
       const updateParkingLotDto: UpdateParkingLotDto = {
         totalCarSpots: 15,
         totalMotorcycleSpots: 20,
       };
 
-      jest.spyOn(repository, 'findOneByOrFail').mockResolvedValue(parkingLot);
+      jest.spyOn(service, 'findOne').mockResolvedValue(parkingLot);
+      jest.spyOn(service, 'validateUserPermission').mockResolvedValue();
+
       jest.spyOn(repository, 'save').mockResolvedValue(parkingLot);
       const result = await service.update(parkingLot.id, updateParkingLotDto);
 
@@ -120,12 +141,14 @@ describe('ParkingLotService', () => {
         totalCarSpots: 15,
         totalMotorcycleSpots: 20,
       };
-      jest.spyOn(repository, 'findOneByOrFail').mockRejectedValue(null);
+      jest.spyOn(service, 'findOne').mockRejectedValue(() => {
+        throw new ParkingLotNotFoundException(id);
+      });
 
       await expect(
         service.update(id, updateParkingLotDto),
       ).rejects.toThrowError(ParkingLotNotFoundException);
-      expect(repository.findOneByOrFail).toHaveBeenCalledWith({ id });
+      expect(service.findOne).toHaveBeenCalledWith(id);
     });
   });
   describe('Delete', () => {
@@ -133,32 +156,41 @@ describe('ParkingLotService', () => {
       const id = '1';
       const parkingLot: ParkingLot = {
         id,
-        company: '1',
+        company: null,
         totalCarSpots: 10,
         totalMotorcycleSpots: 10,
         totalSpots: 20,
-        occupiedSpots: [],
         parkingEvents: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+        avaliableCarSpots: 10,
+        avaliableMotorcycleSpots: 10,
+        totalAvaliableSpots: 20,
       };
 
-      jest.spyOn(repository, 'findOneByOrFail').mockResolvedValue(parkingLot);
+      jest.spyOn(service, 'findOne').mockResolvedValue(parkingLot);
+      jest.spyOn(service, 'validateUserPermission').mockResolvedValue();
+
       jest.spyOn(repository, 'softRemove').mockResolvedValue(parkingLot);
 
       const result = await service.remove(id);
 
-      expect(repository.findOneByOrFail).toHaveBeenCalledWith({ id });
+      expect(service.findOne).toHaveBeenCalledWith(id);
       expect(repository.softRemove).toHaveBeenCalledWith(parkingLot);
       expect(result).toEqual(parkingLot);
     });
     it('Should throw an error when a parking lot with the given id does not exist', async () => {
       const id = '1';
 
-      jest.spyOn(repository, 'findOneByOrFail').mockRejectedValue(null);
+      jest.spyOn(service, 'findOne').mockRejectedValue(() => {
+        throw new ParkingLotNotFoundException(id);
+      });
 
       await expect(service.remove(id)).rejects.toThrowError(
         ParkingLotNotFoundException,
       );
-      expect(repository.findOneByOrFail).toHaveBeenCalledWith({ id });
+      expect(service.findOne).toHaveBeenCalledWith(id);
     });
   });
 });

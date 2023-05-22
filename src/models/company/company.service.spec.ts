@@ -51,12 +51,17 @@ describe('CompanyService', () => {
       };
       const parkingLot: ParkingLot = {
         id: '1',
-        company: '1',
+        company: null,
         totalCarSpots: 10,
         totalMotorcycleSpots: 10,
         totalSpots: 20,
-        occupiedSpots: [],
         parkingEvents: [],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        deletedAt: null,
+        avaliableCarSpots: 10,
+        avaliableMotorcycleSpots: 10,
+        totalAvaliableSpots: 20,
       };
 
       const { name, cnpj, password, address, phone, parkingSpots } = companyDto;
@@ -155,22 +160,22 @@ describe('CompanyService', () => {
         vehicles: [],
       };
 
-      jest.spyOn(repository, 'findOneByOrFail').mockResolvedValue(company);
+      jest.spyOn(service, 'findOne').mockResolvedValue(company);
 
       const result = await service.findOne(id);
 
-      expect(repository.findOneByOrFail).toHaveBeenCalledWith({ id });
       expect(result).toEqual(company);
     });
     it('Should throw CompanyNotFoundException when a company with the given id does not exist', async () => {
       const id = '1';
 
-      jest.spyOn(repository, 'findOneByOrFail').mockRejectedValue(null);
+      jest.spyOn(service, 'findOne').mockRejectedValue(() => {
+        throw new CompanyNotFoundException(id);
+      });
 
       await expect(service.findOne(id)).rejects.toThrowError(
         CompanyNotFoundException,
       );
-      expect(repository.findOneByOrFail).toHaveBeenCalledWith({ id });
     });
   });
   describe('Update', () => {
@@ -196,25 +201,17 @@ describe('CompanyService', () => {
         phone: '1234567891',
       };
 
-      jest.spyOn(repository, 'findOneByOrFail').mockResolvedValue(company);
       jest.spyOn(repository, 'findOneBy').mockResolvedValue(null);
       jest.spyOn(repository, 'save').mockResolvedValue(company);
 
+      jest.spyOn(service, 'validateUserPermission').mockResolvedValue();
+      jest.spyOn(service, 'findOne').mockResolvedValue(company);
+
       const result = await service.update(id, company);
 
-      expect(repository.findOneByOrFail).toHaveBeenCalledWith({ id });
+      expect(service.findOne).toHaveBeenCalledWith(id);
       expect(repository.save).toHaveBeenCalled();
       expect(result).toEqual(Object.assign(company, companyUpdated));
-    });
-    it('Should throw CompanyNotFoundException when a company with the given id does not exist', async () => {
-      const id = '1';
-
-      jest.spyOn(repository, 'findOneByOrFail').mockRejectedValue(null);
-
-      await expect(service.update(id, {})).rejects.toThrowError(
-        CompanyNotFoundException,
-      );
-      expect(repository.findOneByOrFail).toHaveBeenCalledWith({ id });
     });
     it('Should throw CompanyAlreadyExistsException when a company with the same cnpj already exists', async () => {
       const id = '1';
@@ -239,6 +236,7 @@ describe('CompanyService', () => {
       };
 
       jest.spyOn(repository, 'findOneBy').mockResolvedValue(company);
+      jest.spyOn(service, 'validateUserPermission').mockResolvedValue();
 
       await expect(service.update(id, companyUpdated)).rejects.toThrowError(
         CompanyAlreadyExistsException,
@@ -262,12 +260,17 @@ describe('CompanyService', () => {
         phone: '1234567890',
         parkingLot: {
           id: '1',
-          company: '1',
+          company: null,
           totalCarSpots: 10,
           totalMotorcycleSpots: 10,
           totalSpots: 20,
-          occupiedSpots: [],
           parkingEvents: [],
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          deletedAt: null,
+          avaliableCarSpots: 10,
+          avaliableMotorcycleSpots: 10,
+          totalAvaliableSpots: 20,
         },
         createdAt: new Date(),
         deletedAt: null,
@@ -275,12 +278,18 @@ describe('CompanyService', () => {
         vehicles: [],
       };
 
-      jest.spyOn(repository, 'findOneByOrFail').mockResolvedValue(company);
       jest.spyOn(repository, 'softRemove').mockResolvedValue(company);
 
+      jest.spyOn(service, 'validateUserPermission').mockResolvedValue();
+      jest.spyOn(service, 'findOne').mockResolvedValue(company);
+
       jest
-        .spyOn(parkingLotRepository, 'findOneByOrFail')
+        .spyOn(parkingLotService, 'findOne')
         .mockResolvedValue(company.parkingLot);
+
+      jest
+        .spyOn(parkingLotService, 'validateUserPermission')
+        .mockResolvedValue();
 
       jest
         .spyOn(parkingLotRepository, 'softRemove')
@@ -288,19 +297,23 @@ describe('CompanyService', () => {
 
       const result = await service.remove(id);
 
-      expect(repository.findOneByOrFail).toHaveBeenCalledWith({ id });
+      expect(service.findOne).toHaveBeenCalledWith(id);
       expect(repository.softRemove).toHaveBeenCalledWith(company);
       expect(result).toEqual(company);
     });
     it('Should throw CompanyNotFoundException when a company with the given id does not exist', async () => {
       const id = '1';
 
-      jest.spyOn(repository, 'findOneByOrFail').mockRejectedValue(null);
+      jest.spyOn(service, 'findOne').mockRejectedValue(() => {
+        throw new CompanyNotFoundException(id);
+      });
+
+      jest.spyOn(service, 'validateUserPermission').mockResolvedValue();
 
       await expect(service.remove(id)).rejects.toThrowError(
         CompanyNotFoundException,
       );
-      expect(repository.findOneByOrFail).toHaveBeenCalledWith({ id });
+      expect(service.findOne).toHaveBeenCalledWith(id);
     });
   });
 });

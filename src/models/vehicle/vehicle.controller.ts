@@ -20,10 +20,14 @@ export class VehicleController {
   @UseGuards(AuthGuard)
   @Post()
   createVehicle(@Body() createVehicleDto: CreateVehicleDto, @Req() req: any) {
-    const { user } = req;
-    this.vehicleService.user = user;
+    try {
+      const { user } = req;
+      this.vehicleService.user = user;
 
-    return this.vehicleService.create(createVehicleDto);
+      return this.vehicleService.create(createVehicleDto);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   @UseGuards(AuthGuard)
@@ -33,27 +37,39 @@ export class VehicleController {
     @Body() updateVehicleDto: UpdateVehicleDto,
     @Req() req: any,
   ) {
-    const { user } = req;
-    this.vehicleService.user = user;
+    try {
+      const { user } = req;
+      this.vehicleService.user = user;
 
-    return this.vehicleService.update(id, updateVehicleDto);
+      return this.vehicleService.update(id, updateVehicleDto);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   @UseGuards(AuthGuard)
   @Get('/:id')
   findOne(@Param('id') id: VehicleId, @Req() req: any) {
-    const { user } = req;
-    this.vehicleService.user = user;
+    try {
+      const { user } = req;
+      this.vehicleService.user = user;
 
-    return this.vehicleService.findOne(id);
+      return this.vehicleService.findOne(id);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   @UseGuards(AuthGuard)
   @Delete('/:id')
   remove(@Param('id') id: VehicleId, @Req() req: any) {
-    const { user } = req;
-    this.vehicleService.user = user;
+    try {
+      const { user } = req;
+      this.vehicleService.user = user;
 
-    return this.vehicleService.remove(id);
+      return this.vehicleService.remove(id);
+    } catch (error) {
+      console.error(error);
+    }
   }
 }
